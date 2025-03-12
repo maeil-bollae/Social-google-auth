@@ -1,0 +1,8 @@
+# 사용중인 설정파일 => 템플릿 제공 예정
+.env
+
+# node_modules 제외
+node_modules
+
+# mac에서 만들어지는 DS_store제외
+.DS_store

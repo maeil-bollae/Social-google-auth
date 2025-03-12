@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지</title>
+</head>
+<body>
+    <h1>환영합니다, <span id="username"></span>님!</h1>
+    <img id="user-picture" alt="프로필 사진" width="100">
+    <p>Email: <span id="user-email"></span></p>
+
+    <a href="/auth/logout">
+        <button>로그아웃</button>
+    </a>
+
+    <script>
+        // 쿠키에서 user_info를 가져와서 파싱
+        function getCookie(name) {
+            const cookies = document.cookie.split('; ');
+            for (let i = 0; i < cookies.length; i++) {
+                const [key, value] = cookies[i].split('=');
+                if (key === name) {
+                    return decodeURIComponent(value);
+                }
+            }
+            return null;
+        }
+
+        // user_info 쿠키에서 데이터 가져오기
+        const userInfo = getCookie('user_info');
+        if (userInfo) {
+            const user = JSON.parse(userInfo);
+            document.getElementById('username').textContent = user.name;
+            document.getElementById('user-picture').src = user.picture;
+            document.getElementById('user-email').textContent = user.email;
+        } else {
+            // 로그인하지 않은 경우 로그인 페이지로 이동
+            window.location.href = '/auth/google';
+        }
+    </script>
+</body>
+</html>
