@@ -84,35 +84,49 @@ google로그인을 사용하기 전에 [Google Developers Console](https://conso
 이렇게 하면 파일 구조와 간단한 예외사항 들을 정리할 수 있다.
 
 이후에는 구현을 시작하였다.
-#### /models
-- mariadb.js
-db를 연결하기 위해, mysql.createPool을 이용해 db를 연결하였다.
-이후 구현을 위해 사용될 SQL코드들을 객체로 정리해 두었다.
+### /controller
+- authController.js
+  auth와 관련된 로직들을 모두 넣어둠, 소셜 로그인, 회원가입, 로컬로그인, 로그아웃이 있음
 
-- auth.js
-로그인페이지와 마이페이지의 검증 로직들을 넣어두었다.
+#### /models
+- ~~mariadb.js~~ => db.js
+db를 연결하기 위해, mysql.createPool을 이용해 db를 연결하였다.
+이후 구현을 위해 사용될 SQL코드를 정리해둠
+
+- ~~auth.js~~ => checkCookie.js
+쿠키를 확인하는 로직을 추가하여, 로그인을 한 상태에서는 회원가입에 못들어가고, 로그인을 안한 상태에서는 마이페이지에 못들어가게 만들어 주는 미들웨어를 모아둠
+
+- passport.js
+이전에 소셜로그인에 필요한 passport.use 함수를 범용적으로 바꿔서 저장해둠
 
 #### /routes
 - auth.js
-구글 로그인의 로직들을 만든 파일, passport를 이용해서 google과 연결하고, 여기서 받아온 정보를 토대로 유저생성, Refresh & access token 관리, 로그아웃 등에 관한 로직을 넣어둠
+로그인과 관련된 전반적인 라우터를 넣어둠, 로직은 controller에 넣어 분할함
 
 - index.js
-홈페이지와 마이페이지 리다이렉션 작성
+홈페이지와 리다이렉션 작성
 
 -users.js
-원래 있던거
+유저 정보와 관련된 마이페이지와 같은 라우터를 넣어둘 예정
 
 #### /views
 - index.ejs
 메인 페이지를 담당함
 
 - mypage.js
-마이페이지를 담당하며, 로그인한 정보를 띄워줌
+마이페이지를 담당
+
+- login.js
+  소셜로그인과 로컬로그인을 구현해둠
 
 ## 구현하면서 마주친 문제들
 1. 무한 리디렉션 문제
 - 원인: 로그인을 확인하는 두 미들웨어가 충돌을 일으킴
 - 해결: 로직을 수정하여 해결
+
+1-2 무한 리다이렉션 문제
+   - 원인: 기존의 미들웨어가 뒤로가기로 했을 시 적용이 되지 않아 리다이렉션을 현재 페이지에 넣어놨더니 두 미들웨어가 또 충돌함
+   - 해결: html코드에 캐시를 사용하지 않겠다고 명시한 후, 미들웨어에서 리다이렉션 대신 status를 보내주도록 수정함
 
 2. DB "Unknown database 'movie_booking'" 오류
 - 원인: db를 못참음;;
@@ -121,6 +135,27 @@ db를 연결하기 위해, mysql.createPool을 이용해 db를 연결하였다.
 3. JWT expiresIn 오류
 - 원인: .env 파일에 리프레쉬랑 어세스 쿠피의 지속시간을 넣을려다가 실패함
 - 해결: const함수로 해당 파일에 넣어줌
+
+4. 설계 할때 왜 그렇게 했는지 이유 정확하게 명시하기... 코드짜면서 자꾸 헷갈려지니까 이리갔다 저리갔다 하는데 시간을 너무 많이 소비함
+
+5. 데이터베이스 where 선정 혼란
+   - 원인: 이전에 소셜로그인을 구현하면서 auth_provier_id를 사용했어서 혼란을 일으킴
+   - 해결: local로그인을 구현할때 users테이블의 id를 사용하도록 수정함
+
+7. 데이터베이스 update 문제
+>You are using safe update mode and you tried to update a table without a WHERE that uses a KEY column. To disable safe mode, toggle the option in Preferences -> SQL Editor and reconnect
+
+   - 원인: 어떤 행을 삭제하거나 수정하려할 때 나오는 에러인데, 삭제 / 수정시에는 Key 열을 이용해서만 가능하도록 설정되어 있기 때문에 등장한다.
+   - 해결: PK를 사용할려고도 해보고, token테이블의 id를 뽑아서 사용할려고 했지만, sql이 너무 길어지기에 해당 설정을 푸는것으로 해결함
+     ```
+     set sql_safe_updates=0;
+     ```
+8. refresh token 쿠키저장
+   - 원인: Access_token이 만료가 된 이후, refresh token을 이용해서 새로 발급 받아야 하는데, 처음에는 db 에만 저장하고, 따로 쿠키로 관리하지 않아서 Access Token을 발급하는데 어려움을 겪게 되었다.
+   - 해결 1: 일단 user_info라는 쿠키를 따로 주기에 거기서 email을 꺼내 테이블을 join하고 revoke를 확인해서 Access_token을 줄려고 했지만, 너무 구현이 길어짐과 동시에, email로 access token을 확인하는 것과 같아지기에 보안상 문제가 있을 것이라고 생각함
+   - 해결 2: 그래서 그냥 쿠키로 refresh token을 저장함, http-only라는 프론트에서 개발자 도구로는 접근할 수 없게 해주는걸 통해, 쿠키로 보관하다가 access_token을 확인할와 로그아웃 하면서 revoke할때 꺼내쓸 수 있게됨
+  
+9. 구현전에 설계를 하면서 그림으로 그려두는건 좋은 습관이 될거같음! 진짜 내가 구현하고도 넘 헷갈려서 죽겠음
 
 ---
 ## 참고
