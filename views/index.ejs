@@ -2,12 +2,22 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Google 로그인</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, private">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>메인 페이지</title>
 </head>
 <body>
-    <h1>Google 로그인</h1>
-    <a href="/auth/google">
-        <button>Google로 로그인</button>
-    </a>
+    <h1>메인 페이지</h1>
+    <% if (accessToken) { %>
+        <!-- access_token이 있으면 마이페이지 버튼 표시 -->
+        <a href="/users/mypage">
+            <button>마이페이지로 이동</button>
+        </a>
+    <% } else { %>
+        <a href="/auth">
+            <button>로그인 하러가기</button>
+        </a>
+    <% } %>
 </body>
 </html>

@@ -3,18 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <title>마이페이지</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, private">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+        }
+        img {
+            border-radius: 50%;
+        }
+        form button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 <body>
     <h1>환영합니다, <span id="username"></span>님!</h1>
     <img id="user-picture" alt="프로필 사진" width="100">
     <p>Email: <span id="user-email"></span></p>
-
-    <a href="/auth/logout">
-        <button>로그아웃</button>
-    </a>
+    
+    <form action="/auth/logout" method="POST">
+        <button type="submit">로그아웃</button>
+    </form>
 
     <script>
-        // 쿠키에서 user_info를 가져와서 파싱
+        // bfcache 문제 해결: 페이지가 bfcache에서 불러와지면 새로고침
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+
+        // 쿠키에서 지정한 이름의 값을 가져오는 함수
         function getCookie(name) {
             const cookies = document.cookie.split('; ');
             for (let i = 0; i < cookies.length; i++) {
@@ -26,15 +55,21 @@
             return null;
         }
 
-        // user_info 쿠키에서 데이터 가져오기
+        // user_info 쿠키에서 데이터를 가져와서 파싱하고 표시
         const userInfo = getCookie('user_info');
         if (userInfo) {
-            const user = JSON.parse(userInfo);
-            document.getElementById('username').textContent = user.name;
-            document.getElementById('user-picture').src = user.picture;
-            document.getElementById('user-email').textContent = user.email;
+            try {
+                const user = JSON.parse(userInfo);
+                document.getElementById('username').textContent = user.name || '';
+                document.getElementById('user-picture').src = user.picture || '';
+                document.getElementById('user-email').textContent = user.email || '';
+            } catch(e) {
+                console.error("user_info 파싱 오류:", e);
+                // 파싱에 실패하면 로그인 페이지로 이동
+                window.location.href = '/auth/google';
+            }
         } else {
-            // 로그인하지 않은 경우 로그인 페이지로 이동
+            // user_info 쿠키가 없으면 로그인 페이지로 이동 (예: 구글 로그인)
             window.location.href = '/auth/google';
         }
     </script>

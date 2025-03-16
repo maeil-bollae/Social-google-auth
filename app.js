@@ -6,13 +6,12 @@ var logger = require('morgan');
 var dotenv = require('dotenv');
 var passport = require('passport');
 var session = require('express-session');
-
-var indexRouter = require('./routes/index');
-var authRouter = require('./routes/auth');
+var indexRouter = require('./router/index');
+var authRouter = require('./router/auth');
+var usersRouter = require('./router/users');
+dotenv.config(); 
 
 var app = express();
-
-dotenv.config();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,7 +24,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'default-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 }));
@@ -34,6 +33,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', indexRouter);
+app.use('/users', usersRouter)
 app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler

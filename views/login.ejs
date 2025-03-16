@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, private">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>로그인 및 회원가입</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        .social-login, .normal-login, .signup {
+            margin-bottom: 2rem;
+        }
+        .social-login a {
+            display: inline-block;
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            color: #333;
+        }
+        form input, form button {
+            display: block;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>로그인 및 회원가입</h1>
+
+    <div class="social-login">
+        <h2>소셜 로그인</h2>
+        <!-- 소셜 로그인 링크: 필요에 따라 수정 -->
+        <a href="/auth/google">구글 로그인</a>
+        <a href="/auth/naver">네이버 로그인</a>
+        <a href="/auth/facebook">페이스북 로그인</a>
+    </div>
+
+    <div class="normal-login">
+        <h2>일반 로그인</h2>
+        <form action="/auth/login" method="post">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" placeholder="이메일 입력" required>
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+            <button type="submit">로그인</button>
+        </form>
+    </div>
+
+    <div class="signup">
+        <h2>회원가입</h2>
+        <form action="/auth/signup" method="post">
+            <label for="signup_username">닉네임</label>
+            <input type="text" id="signup_username" name="username" placeholder="아이디 입력" required>
+            <label for="signup_name">이름</label>
+            <input type="text" id="signup_name" name="name" placeholder="이름 입력" required>
+            <label for="signup_email">이메일</label>
+            <input type="email" id="signup_email" name="email" placeholder="이메일 입력" required>
+            <label for="signup_password">비밀번호</label>
+            <input type="password" id="signup_password" name="password" placeholder="비밀번호 입력" required>
+            <label for="signup_phone">전화번호</label>
+            <input type="text" id="signup_phone" name="phone_number" placeholder="전화번호 입력">
+            <button type="submit">회원가입</button>
+        </form>
+    </div>
+
+    <script>
+        // URL에 error 파라미터가 있으면 alert으로 메시지 표시
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        if (error) {
+            alert(error);
+            // 에러 메시지를 한번 표시한 후 URL에서 제거할 수 있음 (옵션)
+            history.replaceState(null, '', window.location.pathname);
+        }
+        
+        // bfcache(뒤로가기 캐시) 문제 해결: 페이지가 bfcache에서 로드되면 새로고침
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+    </script>
+</body>
+</html>
